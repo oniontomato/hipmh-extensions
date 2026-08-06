@@ -14,7 +14,8 @@ on:
   # Manual trigger
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}
