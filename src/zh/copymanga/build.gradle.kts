@@ -14,7 +14,7 @@ keiyoushi {
         name = "拷贝漫画"
         lang = "zh"
         baseUrl {
-            mirrors("https://www.copymanga.org", "https://www.copymanga.info", "https://www.copymanga.net")
+            mirrors("https://www.copy3000.com", "https://2025copy.com", "https://www.copymanga.site")
         }
     }
 }

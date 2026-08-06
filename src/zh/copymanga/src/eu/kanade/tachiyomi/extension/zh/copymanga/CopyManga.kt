@@ -18,7 +18,10 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 abstract class CopyManga : KeiSource() {
 
     private val apiBaseUrl: String
-        get() = baseUrl.replaceFirst("https://www.", "https://api.")
+        get() {
+            val host = baseUrl.toHttpUrlOrNull()?.host ?: return baseUrl
+            return "https://api.$host"
+        }
 
     override fun Headers.Builder.configureHeaders(): Headers.Builder = apply {
         set("User-Agent", USER_AGENT)
