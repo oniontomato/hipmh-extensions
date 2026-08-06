@@ -19,7 +19,7 @@ import org.jsoup.nodes.Element
 import java.time.Instant
 
 @Source
-class Hipmh : KeiSource() {
+abstract class Hipmh : KeiSource() {
 
     private val apiBaseUrl = "https://hipapi1.s3file.top"
     private val coverBaseUrl = "https://cover.s3imgs.top"
