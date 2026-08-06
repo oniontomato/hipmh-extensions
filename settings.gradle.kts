@@ -41,7 +41,6 @@ File(rootDir, "lib-multisrc").eachDir { include("lib-multisrc:${it.name}") }
 
 // Load the selected individual extensions only
 include(":src:en:goda")
-include(":src:zh:copymanga")
 include(":src:zh:hipmh")
 include(":src:zh:jinmantiantang")
 include(":src:zh:komiic")
