@@ -1,5 +1,6 @@
 name: CI
 
+# Builds the 5 selected sources and uploads APKs as artifacts.
 on:
   push:
     branches:
