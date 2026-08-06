@@ -44,6 +44,7 @@ include(":src:en:goda")
 include(":src:zh:hipmh")
 include(":src:zh:jinmantiantang")
 include(":src:zh:komiic")
+include(":src:zh:rumanhua")
 include(":src:zh:tencentcomics")
 
 fun File.eachDir(block: (File) -> Unit) {

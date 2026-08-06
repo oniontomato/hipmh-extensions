@@ -55,6 +55,7 @@ jobs:
             :src:zh:hipmh:assembleRelease \
             :src:zh:jinmantiantang:assembleRelease \
             :src:zh:komiic:assembleRelease \
+            :src:zh:rumanhua:assembleRelease \
             :src:zh:tencentcomics:assembleRelease
 
       - name: Upload APKs
