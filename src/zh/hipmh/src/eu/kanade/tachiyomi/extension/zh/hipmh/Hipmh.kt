@@ -16,7 +16,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import java.time.Instant
+import kotlin.time.Instant
 
 @Source
 abstract class Hipmh : KeiSource() {
@@ -108,7 +108,7 @@ abstract class Hipmh : KeiSource() {
         val chapters = mutableListOf<SChapter>()
         var page = 1
         while (true) {
-            val url = apiBaseUrl.toHttpUrlOrNull()!!.newBuilder()
+            val chapterUrl = apiBaseUrl.toHttpUrlOrNull()!!.newBuilder()
                 .addPathSegment("v1")
                 .addPathSegment("manga")
                 .addPathSegment("chapters")
@@ -117,11 +117,11 @@ abstract class Hipmh : KeiSource() {
                 .addQueryParameter("per_page", "100")
                 .addQueryParameter("order", "desc")
                 .build()
-            val data = client.get(url).parseAs<ChaptersResponse>().data
+            val data = client.get(chapterUrl).parseAs<ChaptersResponse>().data
             if (data.items.isEmpty()) break
             data.items.forEach { item ->
                 chapters += SChapter.create().apply {
-                    url = "/chapter/${item.hid}"
+                    this.url = "/chapter/${item.hid}"
                     name = item.title.ifBlank { "第 ${item.chapter_number} 话" }
                     date_upload = Instant.tryParse(item.updated_at)
                 }
