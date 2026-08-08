@@ -40,7 +40,7 @@ File(rootDir, "lib").eachDir { include("lib:${it.name}") }
 File(rootDir, "lib-multisrc").eachDir { include("lib-multisrc:${it.name}") }
 
 // Load the selected individual extensions only
-include(":src:en:goda")
+include(":src:zh:baozimhorg")
 include(":src:zh:hipmh")
 include(":src:zh:jinmantiantang")
 include(":src:zh:komiic")

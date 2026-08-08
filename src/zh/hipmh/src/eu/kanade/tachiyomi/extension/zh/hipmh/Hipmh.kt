@@ -11,12 +11,12 @@ import keiyoushi.annotation.Source
 import keiyoushi.network.get
 import keiyoushi.source.KeiSource
 import keiyoushi.utils.parseAs
-import keiyoushi.utils.tryParse
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import kotlin.time.Instant
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 @Source
 abstract class Hipmh : KeiSource() {
@@ -123,7 +123,9 @@ abstract class Hipmh : KeiSource() {
                 chapters += SChapter.create().apply {
                     this.url = "/chapter/${item.hid}"
                     name = item.title.ifBlank { "第 ${item.chapter_number} 话" }
-                    date_upload = Instant.tryParse(item.updated_at)
+                    date_upload = runCatching {
+                        DateTimeFormatter.ISO_INSTANT.parse(item.updated_at, Instant::from).toEpochMilli()
+                    }.getOrDefault(0L)
                 }
             }
             if (page >= data.total_pages) break
