@@ -131,7 +131,7 @@ abstract class Hipmh : KeiSource() {
             if (page >= data.total_pages) break
             page++
         }
-        return chapters.asReversed()
+        return chapters
     }
 
     private fun mangaFromDetailsPage(doc: Document, manga: SManga = SManga.create()): SManga {
