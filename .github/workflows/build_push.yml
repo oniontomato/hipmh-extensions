@@ -1,6 +1,6 @@
 name: CI
 
-# Builds the 5 selected sources, uploads APKs as artifacts and publishes a Mihon/Komikku repo index.
+# Builds the single selected source, uploads APKs as artifacts and publishes a Mihon/Komikku repo index.
 
 on:
   push:
@@ -51,12 +51,7 @@ jobs:
           KEY_STORE_PASSWORD: hipmh-pass-2024
           KEY_PASSWORD: hipmh-pass-2024
         run: |
-          ./gradlew :src:en:goda:assembleRelease \
-            :src:zh:hipmh:assembleRelease \
-            :src:zh:jinmantiantang:assembleRelease \
-            :src:zh:komiic:assembleRelease \
-            :src:zh:rumanhua:assembleRelease \
-            :src:zh:tencentcomics:assembleRelease
+          ./gradlew :src:zh:hipmh:assembleRelease
 
       - name: Upload APKs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
