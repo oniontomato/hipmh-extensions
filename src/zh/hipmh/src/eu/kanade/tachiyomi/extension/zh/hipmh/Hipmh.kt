@@ -32,7 +32,7 @@ abstract class Hipmh : KeiSource() {
             .addQueryParameter("sort", "popular")
             .addQueryParameter("page", page.toString())
             .addQueryParameter("per_page", "18")
-            .build()
+            .build(),
     )
 
     // 用 API 取最新（server-side sort=updated，比前端 new-releases 頁面更準、不會不同步）
@@ -42,7 +42,7 @@ abstract class Hipmh : KeiSource() {
             .addQueryParameter("sort", "updated")
             .addQueryParameter("page", page.toString())
             .addQueryParameter("per_page", "18")
-            .build()
+            .build(),
     )
 
     // 宣報搜尋 UI filter：分類（國漫/韓漫）+ 狀態 dropdown，選中後注入 getSearchManga
@@ -160,7 +160,7 @@ abstract class Hipmh : KeiSource() {
                         addQueryParameter("page", page.toString())
                         addQueryParameter("per_page", "18")
                     }
-                    .build()
+                    .build(),
             ).items
             for (item in pageItems) {
                 if (item.url.isNotBlank() && seen.add(item.url)) items += item
