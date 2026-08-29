@@ -27,7 +27,7 @@ abstract class Hipmh : KeiSource() {
 
     override suspend fun getPopularManga(page: Int): MangasPage = parseMangaListPage("$baseUrl/popularity?page=$page")
 
-    override suspend fun getLatestUpdates(page: Int): MangasPage = parseMangaListPage("$baseUrl/new-releases?page=$page")
+    override suspend fun getLatestUpdates(page: Int): MangasPage = parseApiMangaListPage(page)
 
     override suspend fun getSearchMangaList(
         page: Int,
@@ -102,6 +102,18 @@ abstract class Hipmh : KeiSource() {
         val next = doc.selectFirst("a.pagination-next")
         val hasNext = next != null && next.attr("aria-disabled") != "true"
         return MangasPage(items, hasNext)
+    }
+
+    private suspend fun parseApiMangaListPage(page: Int): MangasPage {
+        val url = apiUrl("mangas")
+            .addQueryParameter("category", "1")
+            .addQueryParameter("sort", "updated")
+            .addQueryParameter("page", page.toString())
+            .addQueryParameter("per_page", "18")
+            .build()
+        val data = client.get(url).parseAs<SearchResponse>().data
+        val items = data.data.map { it.toSManga() }
+        return MangasPage(items, page < data.total_pages)
     }
 
     private suspend fun fetchChapters(mid: String): List<SChapter> {
