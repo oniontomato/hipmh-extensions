@@ -43,7 +43,7 @@ abstract class Hipmh : KeiSource() {
             .addQueryParameter("page_size", "24")
             .build()
         val data = client.get(url).parseAs<SearchResponse>().data
-        val items = data.data.map { it.toSManga() }
+        val items = data.mangaItems.map { it.toSManga() }
         return MangasPage(items, page < data.total_pages)
     }
 
@@ -112,7 +112,7 @@ abstract class Hipmh : KeiSource() {
             .addQueryParameter("per_page", "18")
             .build()
         val data = client.get(url).parseAs<SearchResponse>().data
-        val items = data.data.map { it.toSManga() }
+        val items = data.mangaItems.map { it.toSManga() }
         return MangasPage(items, page < data.total_pages)
     }
 

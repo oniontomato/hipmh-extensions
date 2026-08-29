@@ -8,12 +8,17 @@ class SearchResponse(val code: Int, val data: SearchData)
 
 @Serializable
 class SearchData(
-    val data: List<MangaItem>,
+    @SerialName("items") val items: List<MangaItem> = emptyList(),
+    @SerialName("data") val legacyData: List<MangaItem>? = null,
     val page: Int = 1,
     val page_size: Int = 0,
+    val per_page: Int = 0,
     val total: Long = 0,
     val total_pages: Int = 1,
-)
+) {
+    val mangaItems: List<MangaItem>
+        get() = items.ifEmpty { legacyData.orEmpty() }
+}
 
 @Serializable
 class MangaItem(
