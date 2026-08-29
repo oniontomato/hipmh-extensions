@@ -91,7 +91,7 @@ class LdSeries(
 
 // 分類 dropdown filter（國漫/韓漫）：搜尋 UI 會渲染，選中後 state=index 注入 getSearchManga
 open class CategoryFilter(
-    private val displayName: String,
+    displayName: String,
     private val vals: Array<Pair<String, String>>,
 ) : Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
     fun toUriPart() = vals[state].second
@@ -99,7 +99,7 @@ open class CategoryFilter(
 
 // 狀態 dropdown：API /v1/mangas 接受 status 參數 server-side 篩選（ongoing/completed/unknown）
 open class StatusFilter(
-    private val displayName: String,
+    displayName: String,
     private val vals: Array<Pair<String, String>>,
 ) : Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
     fun toUriPart() = vals[state].second
@@ -107,7 +107,7 @@ open class StatusFilter(
 
 // 排序 dropdown：API /v1/mangas 接受 sort 參數 server-side 排序（updated/popular/latest）
 open class SortFilter(
-    private val displayName: String,
+    displayName: String,
     private val vals: Array<String>,
 ) : Filter.Sort(displayName, vals) {
     fun toUriPart() = state?.let { vals[it.index] } ?: vals[0]

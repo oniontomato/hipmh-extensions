@@ -153,17 +153,14 @@ abstract class Hipmh : KeiSource() {
         // 空白 query（browse）→ 只抓 page 1 即時；有 query → 多頁去重後 client-side 篩
         val maxPages = query.isBlank() ? 1 : 20
         while (page <= maxPages && items.size < 400) {
-            val pageItems = parseMangaListApiPage(
-                apiUrl("mangas")
-                    .apply {
-                        if (category != null) addQueryParameter("category", category.toString())
-                        if (status != null) addQueryParameter("status", status)
-                        if (sort != null) addQueryParameter("sort", sort)
-                        addQueryParameter("page", page.toString())
-                        addQueryParameter("per_page", "18")
-                    }
-                    .build(),
-            ).items
+            val url = apiUrl("mangas")
+                .addQueryParameter("page", page.toString())
+                .addQueryParameter("per_page", "18")
+            if (category != null) url.addQueryParameter("category", category.toString())
+            if (status != null) url.addQueryParameter("status", status)
+            if (sort != null) url.addQueryParameter("sort", sort)
+
+            val pageItems = parseMangaListApiPage(url).items
             for (item in pageItems) {
                 if (item.url.isNotBlank() && seen.add(item.url)) items += item
             }
