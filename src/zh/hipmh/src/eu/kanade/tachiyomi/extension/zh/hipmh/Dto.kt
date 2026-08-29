@@ -4,11 +4,15 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class SearchResponse(val code: Int, val data: SearchData)
+class SearchResponse(
+    val code: Int = 0,
+    val message: String = "",
+    val data: SearchData = SearchData(),
+)
 
 @Serializable
 class SearchData(
-    @SerialName("items") val items: List<MangaItem> = emptyList(),
+    val items: List<MangaItem> = emptyList(),
     @SerialName("data") val legacyData: List<MangaItem>? = null,
     val page: Int = 1,
     val page_size: Int = 0,
@@ -22,14 +26,20 @@ class SearchData(
 
 @Serializable
 class MangaItem(
-    val id: String = "",
+    @SerialName("mid") val mid: String = "",
+    @SerialName("id") val id: String? = null,
     val title: String = "",
     val slug: String = "",
     val vertical_image_url: String = "",
     val description: String = "",
     val status: String = "",
+    val content_rating: Int = 0,
+    val cover_color: String? = null,
+    val cover_image_url: String = "",
+    val author_names: List<String> = emptyList(),
     val authors: List<LdAuthor> = emptyList(),
-    val genres: List<LdGenre> = emptyList(),
+    val genres: List<String> = emptyList(),
+    val genre_names: List<String> = emptyList(),
 )
 
 @Serializable

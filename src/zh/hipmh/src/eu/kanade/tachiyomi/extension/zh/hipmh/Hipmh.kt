@@ -172,14 +172,17 @@ abstract class Hipmh : KeiSource() {
     }
 
     private fun MangaItem.toSManga(): SManga = SManga.create().apply {
-        url = "/works/$id"
+        val actualId = mid.ifBlank { id.orEmpty() }
+        url = "/works/$actualId"
         title = this@toSManga.title
         thumbnail_url = vertical_image_url.takeIf { it.isNotBlank() }
             ?.let { coverBaseUrl + it }
+            ?: cover_image_url.takeIf { it.isNotBlank() }
+                ?.let { coverBaseUrl + it }
         description = this@toSManga.description
-        author = authors.joinToString(", ") { it.name }
-        genre = genres.joinToString(", ") { it.name }
-        status = when (this@toSManga.status) {
+        author = author_names.ifEmpty { authors.map { it.name } }.joinToString(", ")
+        genre = genres.ifEmpty { genre_names }.joinToString(", ")
+        status = when (this@toSManga.status.lowercase()) {
             "completed" -> SManga.COMPLETED
             "ongoing" -> SManga.ONGOING
             else -> SManga.UNKNOWN
