@@ -5,8 +5,8 @@ plugins {
 }
 
 keiyoushi {
-    name = "Hipmh"
-    versionCode = 3
+    name = "Hipmh2"
+    versionCode = 4
     contentWarning = ContentWarning.MIXED
     libVersion = "1.6"
 
