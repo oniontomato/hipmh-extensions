@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.extension.zh.hipmh
 
+import eu.kanade.tachiyomi.source.model.Filter
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -87,6 +88,30 @@ class LdJsonRoot(@SerialName("@graph") val graph: List<LdSeries> = emptyList())
 
 @Serializable
 class LdSeries(
+
+// 分類 dropdown filter（國漫/韓漫）：搜尋 UI 會渲染，選中後 state=index 注入 getSearchManga
+open class CategoryFilter(
+    displayName: String,
+    private val vals: Array<Pair<String, String>>,
+) : Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
+    fun toUriPart() = vals[state].second
+}
+
+// 狀態 dropdown：API /v1/mangas 接受 status 參數 server-side 篩選（ongoing/completed/unknown）
+open class StatusFilter(
+    displayName: String,
+    private val vals: Array<Pair<String, String>>,
+) : Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
+    fun toUriPart() = vals[state].second
+}
+
+// 排序 dropdown：API /v1/mangas 接受 sort 參數 server-side 排序（updated/popular/latest）
+open class SortFilter(
+    displayName: String,
+    private val vals: Array<String>,
+) : Filter.Sort(displayName, vals) {
+    fun toUriPart() = state?.let { vals[it.index] } ?: vals[0]
+}
     val name: String = "",
     val description: String = "",
     val image: String = "",
