@@ -19,9 +19,9 @@ REPO_JAR_DIR = REPO_DIR / "jar"
 REPO_APK_DIR.mkdir(parents=True, exist_ok=True)
 REPO_JAR_DIR.mkdir(parents=True, exist_ok=True)
 
-APK_BASE_URL = "https://raw.githubusercontent.com/slm724/tachiyomi-extensions-lite/repo/apk"
-JAR_BASE_URL = "https://raw.githubusercontent.com/slm724/tachiyomi-extensions-lite/repo/jar"
-ICON_BASE_URL = "https://raw.githubusercontent.com/slm724/tachiyomi-extensions-lite/master"
+APK_BASE_URL = "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/repo/apk"
+JAR_BASE_URL = "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/repo/jar"
+ICON_BASE_URL = "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/master"
 
 to_delete: list[str] = json.loads(sys.argv[1])
 
