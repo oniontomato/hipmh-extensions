@@ -49,7 +49,7 @@ abstract class Hipmh : KeiSource() {
     override fun getFilterList(): FilterList = FilterList(
         CategoryFilter("分類", arrayOf("國漫" to "2", "韓漫" to "1")),
         StatusFilter("狀態", arrayOf("連載中" to "ongoing", "完結" to "completed", "未更新" to "unknown")),
-        SortFilter("排序", arrayOf("updated", "popular", "latest"))
+        SortFilter("排序", arrayOf("updated", "popular", "latest")),
     )
 
     override suspend fun getSearchMangaList(page: Int, query: String, filters: FilterList): MangasPage {
@@ -150,7 +150,9 @@ abstract class Hipmh : KeiSource() {
         val seen = HashSet<String>()
         val items = mutableListOf<SManga>()
         var page = 1
-        while (page <= 20 && items.size < 400) {
+        // 空白 query（browse）→ 只抓 page 1 即時；有 query → 多頁去重後 client-side 篩
+        val maxPages = query.isBlank() ? 1 : 20
+        while (page <= maxPages && items.size < 400) {
             val pageItems = parseMangaListApiPage(
                 apiUrl("mangas")
                     .apply {
