@@ -134,8 +134,9 @@ with REPO_DIR.joinpath("index.json").open("w", encoding="utf-8") as f:
         )
     )
 
-# Minified single-line copy, for tools/configs that expect index.min.json.
-with REPO_DIR.joinpath("index.min.json").open(encoding="utf-8") as f:
+# Minified single-line copy of the just-written index.json,
+# for tools/configs that expect a single-line index.
+with REPO_DIR.joinpath("index.json").open(encoding="utf-8") as f:
     _min_index = json.dumps(json.loads(f.read()), separators=(",", ":"))
 with REPO_DIR.joinpath("index.min.json").open("w", encoding="utf-8") as f:
     f.write(_min_index)
