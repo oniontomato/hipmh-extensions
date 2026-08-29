@@ -25,15 +25,57 @@ abstract class Hipmh : KeiSource() {
     private val coverBaseUrl = "https://cover.s3imgs.top"
     private val readerBaseUrl = "https://reader.hipmh.top"
 
-    override suspend fun getPopularManga(page: Int): MangasPage = parseMangaListPage("$baseUrl/popularity?page=$page")
+    // 用 API 取熱門（前端 /popularity 是 client-side route，SSR 不到卡片；API sort=popular 更準）
+    override suspend fun getPopularManga(page: Int): MangasPage = parseMangaListApiPage(
+        apiUrl("mangas")
+            .addQueryParameter("category", "1") // 1 = 韓漫
+            .addQueryParameter("sort", "popular")
+            .addQueryParameter("page", page.toString())
+            .addQueryParameter("per_page", "18")
+            .build()
+    )
 
-    override suspend fun getLatestUpdates(page: Int): MangasPage = parseMangaListPage("$baseUrl/new-releases?page=$page")
+    // 用 API 取最新（server-side sort=updated，比前端 new-releases 頁面更準、不會不同步）
+    override suspend fun getLatestUpdates(page: Int): MangasPage = parseMangaListApiPage(
+        apiUrl("mangas")
+            .addQueryParameter("category", "1") // 1 = 韓漫
+            .addQueryParameter("sort", "updated")
+            .addQueryParameter("page", page.toString())
+            .addQueryParameter("per_page", "18")
+            .build()
+    )
 
-    override suspend fun getSearchMangaList(
-        page: Int,
-        query: String,
-        filters: FilterList,
-    ): MangasPage {
+    // 宣報搜尋 UI filter：分類（國漫/韓漫）+ 狀態 dropdown，選中後注入 getSearchManga
+    override fun getFilterList(): FilterList = FilterList(
+        CategoryFilter("分類", arrayOf("國漫" to "2", "韓漫" to "1")),
+        StatusFilter("狀態", arrayOf("連載中" to "ongoing", "完結" to "completed", "未更新" to "unknown")),
+        SortFilter("排序", arrayOf("updated", "popular", "latest"))
+    )
+
+    override suspend fun getSearchMangaList(page: Int, query: String, filters: FilterList): MangasPage {
+        val category = when (filters.firstOrNull { it is CategoryFilter }?.toUriPart()) {
+            "2" -> 2 // 國漫
+            "1" -> 1 // 韓漫
+            else -> null
+        }
+        val status = when (filters.firstOrNull { it is StatusFilter }?.toUriPart()) {
+            "ongoing" -> "ongoing"
+            "completed" -> "completed"
+            "unknown" -> "unknown"
+            else -> null
+        }
+        val sort = when (filters.firstOrNull { it is SortFilter }?.toUriPart()) {
+            "updated" -> "updated"
+            "popular" -> "popular"
+            "latest" -> "latest"
+            else -> null
+        }
+        // 有選分類/狀態/排序 → API browse（server-side filter + sort，可同時）
+        if (category != null || status != null || sort != null) {
+            val items = searchCategoryStatus(query, category, status, sort)
+            return MangasPage(items, hasNext = false)
+        }
+        // 冇選任何 filter → 維持全域搜尋
         if (query.isBlank()) {
             return parseMangaListPage("$baseUrl/popularity?page=$page")
         }
@@ -96,6 +138,39 @@ abstract class Hipmh : KeiSource() {
         .addPathSegment("v1")
         .addPathSegment(path)
 
+    // API JSON 列表解析（/v1/mangas 返回 shape，與前端 HTML 的 parseMangaListPage 不同）
+    private suspend fun parseMangaListApiPage(url: String): MangasPage {
+        val response = client.get(url).parseAs<MangaListResponse>()
+        val items = response.data.items.map { it.toSManga() }
+        return MangasPage(items, hasNext = response.data.page < response.data.total_pages)
+    }
+
+    // 分類+狀態搜尋：API 忽略 query，故抓多頁去重後 client-side 按 query 篩 title
+    private suspend fun searchCategoryStatus(query: String, category: Int?, status: String?, sort: String?): List<SManga> {
+        val seen = HashSet<String>()
+        val items = mutableListOf<SManga>()
+        var page = 1
+        while (page <= 20 && items.size < 400) {
+            val pageItems = parseMangaListApiPage(
+                apiUrl("mangas")
+                    .apply {
+                        if (category != null) addQueryParameter("category", category.toString())
+                        if (status != null) addQueryParameter("status", status)
+                        if (sort != null) addQueryParameter("sort", sort)
+                        addQueryParameter("page", page.toString())
+                        addQueryParameter("per_page", "18")
+                    }
+                    .build()
+            ).items
+            for (item in pageItems) {
+                if (item.url.isNotBlank() && seen.add(item.url)) items += item
+            }
+            if (pageItems.isEmpty()) break
+            page++
+        }
+        return items.filter { it.title.contains(query, ignoreCase = true) }
+    }
+
     private suspend fun parseMangaListPage(url: String): MangasPage {
         val doc = client.get(url).asJsoup()
         val items = doc.select("a.manga-card-link").map { it.toSManga() }
@@ -157,6 +232,16 @@ abstract class Hipmh : KeiSource() {
         title = selectFirst("h3.manga-card-title")?.text().orEmpty()
             .ifBlank { attr("aria-label") }
         thumbnail_url = selectFirst("img.manga-card-image")?.attr("src")
+    }
+
+    private fun ApiMangaItem.toSManga(): SManga = SManga.create().apply {
+        url = "/works/$mid"
+        title = this@toSManga.title
+        thumbnail_url = vertical_image_url.takeIf { it.isNotBlank() }
+            ?.let { coverBaseUrl + it }
+        author = author_names.joinToString(", ")
+        genre = genres.joinToString(", ")
+        status = SManga.UNKNOWN
     }
 
     private fun MangaItem.toSManga(): SManga = SManga.create().apply {

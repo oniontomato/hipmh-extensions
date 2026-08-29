@@ -1,10 +1,34 @@
 package eu.kanade.tachiyomi.extension.zh.hipmh
 
+import eu.kanade.tachiyomi.source.model.Filter
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 class SearchResponse(val code: Int, val data: SearchData)
+
+// /v1/mangas 列表/最新接口返回的作品 shape（與搜尋用的 MangaItem 不同）
+@Serializable
+class MangaListResponse(val code: Int, val data: MangaListData)
+
+@Serializable
+class MangaListData(
+    val items: List<ApiMangaItem> = emptyList(),
+    val page: Int = 1,
+    val per_page: Int = 0,
+    val total: Long = 0,
+    val total_pages: Int = 1,
+)
+
+@Serializable
+class ApiMangaItem(
+    val mid: String = "",
+    val title: String = "",
+    val vertical_image_url: String = "",
+    val author_names: List<String> = emptyList(),
+    val genres: List<String> = emptyList(),
+    val content_rating: Int = 1,
+)
 
 @Serializable
 class SearchData(
@@ -64,6 +88,30 @@ class LdJsonRoot(@SerialName("@graph") val graph: List<LdSeries> = emptyList())
 
 @Serializable
 class LdSeries(
+
+// 分類 dropdown filter（國漫/韓漫）：搜尋 UI 會渲染，選中後 state=index 注入 getSearchManga
+open class CategoryFilter(
+    private val displayName: String,
+    private val vals: Array<Pair<String, String>>,
+) : Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
+    fun toUriPart() = vals[state].second
+}
+
+// 狀態 dropdown：API /v1/mangas 接受 status 參數 server-side 篩選（ongoing/completed/unknown）
+open class StatusFilter(
+    private val displayName: String,
+    private val vals: Array<Pair<String, String>>,
+) : Filter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
+    fun toUriPart() = vals[state].second
+}
+
+// 排序 dropdown：API /v1/mangas 接受 sort 參數 server-side 排序（updated/popular/latest）
+open class SortFilter(
+    private val displayName: String,
+    private val vals: Array<String>,
+) : Filter.Sort(displayName, vals) {
+    fun toUriPart() = state?.let { vals[it.index] } ?: vals[0]
+}
     val name: String = "",
     val description: String = "",
     val image: String = "",

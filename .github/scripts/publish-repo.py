@@ -116,11 +116,11 @@ all_extensions.extend(new_extensions)
 all_extensions.sort(key=lambda ext: ext.packageName)
 
 index = index_pb2.Index(
-    name="Hipmh Lite",
-        badgeLabel="HL",
+    name="Hipmh",
+        badgeLabel="Hipmh",
         signingKey="BB399FCE2E396E293D4EC2A562E19DF70126135745CBFE10E68C680032256B52",
         contact=index_pb2.Contact(
-            website="https://github.com/slm724/tachiyomi-extensions-lite"
+            website="https://github.com/oniontomato/hipmh-extensions"
     ),
     extensionList=index_pb2.ExtensionList(extensions=all_extensions),
 )
