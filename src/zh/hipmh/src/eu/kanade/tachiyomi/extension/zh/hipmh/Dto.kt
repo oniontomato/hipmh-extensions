@@ -6,6 +6,29 @@ import kotlinx.serialization.Serializable
 @Serializable
 class SearchResponse(val code: Int, val data: SearchData)
 
+// /v1/mangas 列表/最新接口返回的作品 shape（與搜尋用的 MangaItem 不同）
+@Serializable
+class MangaListResponse(val code: Int, val data: MangaListData)
+
+@Serializable
+class MangaListData(
+    val items: List<ApiMangaItem> = emptyList(),
+    val page: Int = 1,
+    val per_page: Int = 0,
+    val total: Long = 0,
+    val total_pages: Int = 1,
+)
+
+@Serializable
+class ApiMangaItem(
+    val mid: String = "",
+    val title: String = "",
+    val vertical_image_url: String = "",
+    val author_names: List<String> = emptyList(),
+    val genres: List<String> = emptyList(),
+    val content_rating: Int = 1,
+)
+
 @Serializable
 class SearchData(
     val data: List<MangaItem>,

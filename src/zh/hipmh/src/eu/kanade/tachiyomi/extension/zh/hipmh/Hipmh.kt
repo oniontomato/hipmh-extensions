@@ -27,7 +27,15 @@ abstract class Hipmh : KeiSource() {
 
     override suspend fun getPopularManga(page: Int): MangasPage = parseMangaListPage("$baseUrl/popularity?page=$page")
 
-    override suspend fun getLatestUpdates(page: Int): MangasPage = parseMangaListPage("$baseUrl/new-releases?page=$page")
+    // 用 API 取最新（server-side sort=updated，比前端 new-releases 頁面更準、不會不同步）
+    override suspend fun getLatestUpdates(page: Int): MangasPage = parseMangaListApiPage(
+        apiUrl("mangas")
+            .addQueryParameter("category", "1") // 1 = 韓漫
+            .addQueryParameter("sort", "updated")
+            .addQueryParameter("page", page.toString())
+            .addQueryParameter("per_page", "18")
+            .build(),
+    )
 
     override suspend fun getSearchMangaList(
         page: Int,
@@ -95,6 +103,13 @@ abstract class Hipmh : KeiSource() {
     private fun apiUrl(path: String) = apiBaseUrl.toHttpUrlOrNull()!!.newBuilder()
         .addPathSegment("v1")
         .addPathSegment(path)
+
+    // API JSON 列表解析（/v1/mangas 返回 shape，與前端 HTML 的 parseMangaListPage 不同）
+    private suspend fun parseMangaListApiPage(url: String): MangasPage {
+        val response = client.get(url).parseAs<MangaListResponse>()
+        val items = response.data.items.map { it.toSManga() }
+        return MangasPage(items, hasNext = response.data.page < response.data.total_pages)
+    }
 
     private suspend fun parseMangaListPage(url: String): MangasPage {
         val doc = client.get(url).asJsoup()
@@ -172,5 +187,15 @@ abstract class Hipmh : KeiSource() {
             "ongoing" -> SManga.ONGOING
             else -> SManga.UNKNOWN
         }
+    }
+
+    private fun ApiMangaItem.toSManga(): SManga = SManga.create().apply {
+        url = "/works/$mid"
+        title = this@toSManga.title
+        thumbnail_url = vertical_image_url.takeIf { it.isNotBlank() }
+            ?.let { coverBaseUrl + it }
+        author = author_names.joinToString(", ")
+        genre = genres.joinToString(", ")
+        status = SManga.UNKNOWN
     }
 }
