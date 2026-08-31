@@ -8,16 +8,16 @@
   "extensionList": {
     "extensions": [
       {
-        "name": "hipmh manga",
+        "name": "Hipmh Manga",
         "packageName": "eu.kanade.tachiyomi.extension.zh.hipmh",
         "resources": {
-          "apkUrl": "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/repo/apk/tachiyomi-zh.hipmh-v1.6.4.apk",
+          "apkUrl": "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/repo/apk/tachiyomi-zh.hipmh-v1.6.5.apk",
           "iconUrl": "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/master/src/zh/hipmh/res/mipmap-xhdpi/ic_launcher.png",
-          "jarUrl": "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/repo/jar/tachiyomi-zh.hipmh-v1.6.4.jar"
+          "jarUrl": "https://raw.githubusercontent.com/oniontomato/hipmh-extensions/repo/jar/tachiyomi-zh.hipmh-v1.6.5.jar"
         },
         "extensionLib": "1.6",
-        "versionCode": "4",
-        "versionName": "1.6.4",
+        "versionCode": "5",
+        "versionName": "1.6.5",
         "contentWarning": "CONTENT_WARNING_MIXED",
         "sources": [
           {
