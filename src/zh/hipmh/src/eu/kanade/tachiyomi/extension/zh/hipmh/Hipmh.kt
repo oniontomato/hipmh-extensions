@@ -36,7 +36,7 @@ abstract class Hipmh : KeiSource() {
     override suspend fun getLatestUpdates(page: Int): MangasPage = parseApiMangaListPage(page)
 
     override fun getFilterList(data: JsonElement?): FilterList = FilterList(
-        CategoryFilter("分類", arrayOf("韓漫" to "1","國漫" to "2")),
+        CategoryFilter("分類", arrayOf("韓漫" to "1", "國漫" to "2")),
         StatusFilter("狀態", arrayOf("全部" to "all", "連載中" to "ongoing", "完結" to "completed")),
         SortFilter(
             "排序",
