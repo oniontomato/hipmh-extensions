@@ -36,9 +36,16 @@ abstract class Hipmh : KeiSource() {
     override suspend fun getLatestUpdates(page: Int): MangasPage = parseApiMangaListPage(page)
 
     override fun getFilterList(data: JsonElement?): FilterList = FilterList(
-        CategoryFilter("分類", arrayOf("國漫" to "2", "韓漫" to "1")),
-        StatusFilter("狀態", arrayOf("連載中" to "ongoing", "完結" to "completed", "全部" to "all")),
-        SortFilter("排序", arrayOf("updated", "popular", "latest")),
+        CategoryFilter("分類", arrayOf("韓漫" to "1","國漫" to "2")),
+        StatusFilter("狀態", arrayOf("全部" to "all", "連載中" to "ongoing", "完結" to "completed")),
+        SortFilter(
+            "排序",
+            arrayOf(
+                "最近更新" to "updated",
+                "熱門" to "popular",
+                "最新上架" to "latest",
+            ),
+        ),
     )
 
     override suspend fun getSearchMangaList(
@@ -57,8 +64,28 @@ abstract class Hipmh : KeiSource() {
         }
 
         if (category != null || status != null || sort != null) {
-            val items = searchCategoryStatus(query, category, status, sort)
-            return MangasPage(items, hasNextPage = false)
+            if (query.isBlank()) {
+                return parseApiMangaListPage(
+                    page = page,
+                    category = category ?: 1,
+                    sort = sort ?: "updated",
+                    status = status,
+                )
+            }
+
+            val url = apiUrl("search")
+                .addQueryParameter("q", query)
+                .addQueryParameter("page", page.toString())
+                .addQueryParameter("page_size", "24")
+                .apply {
+                    category?.let { addQueryParameter("category", it.toString()) }
+                    status?.let { addQueryParameter("status", it) }
+                    sort?.let { addQueryParameter("sort", it) }
+                }
+                .build()
+            val data = client.get(url).parseAs<SearchResponse>().data
+            val items = data.mangaItems.map { it.toSManga() }
+            return MangasPage(items, hasNextPage = page < data.total_pages)
         }
 
         if (query.isBlank()) {
@@ -152,13 +179,13 @@ abstract class Hipmh : KeiSource() {
 
     private class SortFilter(
         name: String,
-        values: Array<String>,
+        private val options: Array<Pair<String, String>>,
     ) : Filter.Select<String>(
         name,
-        values,
+        options.map { it.first }.toTypedArray(),
         0,
     ) {
-        fun toUriPart(): String? = values.getOrNull(state)
+        fun toUriPart(): String? = options.getOrNull(state)?.second
     }
 
     private suspend fun parseMangaListPage(url: String): MangasPage {
@@ -173,36 +200,6 @@ abstract class Hipmh : KeiSource() {
         val data = client.get(url).parseAs<SearchResponse>().data
         val items = data.mangaItems.map { it.toSManga() }
         return MangasPage(items, hasNextPage = data.page < data.total_pages)
-    }
-
-    private suspend fun searchCategoryStatus(
-        query: String,
-        category: Int?,
-        status: String?,
-        sort: String?,
-    ): List<SManga> {
-        val seen = HashSet<String>()
-        val items = mutableListOf<SManga>()
-        var page = 1
-        while (page <= 20 && items.size < 400) {
-            val pageItems = parseMangaListApiPage(
-                apiUrl("mangas")
-                    .apply {
-                        if (category != null) addQueryParameter("category", category.toString())
-                        if (status != null && status != "all") addQueryParameter("status", status)
-                        if (sort != null) addQueryParameter("sort", sort)
-                        addQueryParameter("page", page.toString())
-                        addQueryParameter("per_page", "18")
-                    }
-                    .build(),
-            ).mangas
-            for (item in pageItems) {
-                if (item.url.isNotBlank() && seen.add(item.url)) items += item
-            }
-            if (pageItems.isEmpty()) break
-            page++
-        }
-        return items.filter { it.title.contains(query, ignoreCase = true) }
     }
 
     private suspend fun parseApiMangaListPage(

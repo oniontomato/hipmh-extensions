@@ -5,8 +5,8 @@ plugins {
 }
 
 keiyoushi {
-    name = "hipmh manga"
-    versionCode = 4
+    name = "Hipmh Manga"
+    versionCode = 5
     contentWarning = ContentWarning.MIXED
     libVersion = "1.6"
 
