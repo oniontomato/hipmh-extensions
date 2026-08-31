@@ -130,26 +130,24 @@ abstract class Hipmh : KeiSource() {
 
     private class CategoryFilter(
         name: String,
-        values: Array<Pair<String, String>>,
+        private val values: Array<Pair<String, String>>,
     ) : Filter.Select<String>(
         name,
         values.map { it.first }.toTypedArray(),
         0,
     ) {
-        private val valueMap = values.toMap()
-        fun toUriPart(): String? = valueMap[values[state].first]
+        fun toUriPart(): String? = values.getOrNull(state)?.second
     }
 
     private class StatusFilter(
         name: String,
-        values: Array<Pair<String, String>>,
+        private val values: Array<Pair<String, String>>,
     ) : Filter.Select<String>(
         name,
         values.map { it.first }.toTypedArray(),
         0,
     ) {
-        private val valueMap = values.toMap()
-        fun toUriPart(): String? = valueMap[values[state].first]
+        fun toUriPart(): String? = values.getOrNull(state)?.second
     }
 
     private class SortFilter(
