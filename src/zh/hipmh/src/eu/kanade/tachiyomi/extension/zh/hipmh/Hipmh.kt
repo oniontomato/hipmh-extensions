@@ -12,6 +12,7 @@ import keiyoushi.annotation.Source
 import keiyoushi.network.get
 import keiyoushi.source.KeiSource
 import keiyoushi.utils.parseAs
+import kotlinx.serialization.json.JsonElement
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
@@ -34,7 +35,7 @@ abstract class Hipmh : KeiSource() {
 
     override suspend fun getLatestUpdates(page: Int): MangasPage = parseApiMangaListPage(page)
 
-    override fun getFilterList(): FilterList = FilterList(
+    override fun getFilterList(data: JsonElement?): FilterList = FilterList(
         CategoryFilter("分類", arrayOf("國漫" to "2", "韓漫" to "1")),
         StatusFilter("狀態", arrayOf("連載中" to "ongoing", "完結" to "completed", "全部" to "all")),
         SortFilter("排序", arrayOf("updated", "popular", "latest")),
@@ -45,13 +46,19 @@ abstract class Hipmh : KeiSource() {
         query: String,
         filters: FilterList,
     ): MangasPage {
-        val category = filters.firstOrNull { it is CategoryFilter }?.let { (it as CategoryFilter).toUriPart()?.toIntOrNull() }
-        val status = filters.firstOrNull { it is StatusFilter }?.let { (it as StatusFilter).toUriPart() }
-        val sort = filters.firstOrNull { it is SortFilter }?.let { (it as SortFilter).toUriPart() }
+        val category = filters.firstOrNull { it is CategoryFilter }?.let {
+            (it as CategoryFilter).toUriPart()?.toIntOrNull()
+        }
+        val status = filters.firstOrNull { it is StatusFilter }?.let {
+            (it as StatusFilter).toUriPart()
+        }
+        val sort = filters.firstOrNull { it is SortFilter }?.let {
+            (it as SortFilter).toUriPart()
+        }
 
         if (category != null || status != null || sort != null) {
             val items = searchCategoryStatus(query, category, status, sort)
-            return MangasPage(items, hasNext = false)
+            return MangasPage(items, hasNextPage = false)
         }
 
         if (query.isBlank()) {
@@ -69,7 +76,7 @@ abstract class Hipmh : KeiSource() {
             .build()
         val data = client.get(url).parseAs<SearchResponse>().data
         val items = data.mangaItems.map { it.toSManga() }
-        return MangasPage(items, page < data.total_pages)
+        return MangasPage(items, hasNextPage = page < data.total_pages)
     }
 
     override suspend fun getMangaByUrl(url: HttpUrl): SManga? {
@@ -130,7 +137,7 @@ abstract class Hipmh : KeiSource() {
         0,
     ) {
         private val valueMap = values.toMap()
-        fun toUriPart(): String? = valueMap[values[selected].first]
+        fun toUriPart(): String? = valueMap[values[state].first]
     }
 
     private class StatusFilter(
@@ -142,7 +149,7 @@ abstract class Hipmh : KeiSource() {
         0,
     ) {
         private val valueMap = values.toMap()
-        fun toUriPart(): String? = valueMap[values[selected].first]
+        fun toUriPart(): String? = valueMap[values[state].first]
     }
 
     private class SortFilter(
@@ -153,7 +160,7 @@ abstract class Hipmh : KeiSource() {
         values,
         0,
     ) {
-        fun toUriPart(): String? = values.getOrNull(selected)
+        fun toUriPart(): String? = values.getOrNull(state)
     }
 
     private suspend fun parseMangaListPage(url: String): MangasPage {
@@ -161,13 +168,13 @@ abstract class Hipmh : KeiSource() {
         val items = doc.select("a.manga-card-link").map { it.toSManga() }
         val next = doc.selectFirst("a.pagination-next")
         val hasNext = next != null && next.attr("aria-disabled") != "true"
-        return MangasPage(items, hasNext)
+        return MangasPage(items, hasNextPage = hasNext)
     }
 
     private suspend fun parseMangaListApiPage(url: HttpUrl): MangasPage {
         val data = client.get(url).parseAs<SearchResponse>().data
         val items = data.mangaItems.map { it.toSManga() }
-        return MangasPage(items, page = data.page < data.total_pages)
+        return MangasPage(items, hasNextPage = data.page < data.total_pages)
     }
 
     private suspend fun searchCategoryStatus(
@@ -190,7 +197,7 @@ abstract class Hipmh : KeiSource() {
                         addQueryParameter("per_page", "18")
                     }
                     .build(),
-            ).items
+            ).mangas
             for (item in pageItems) {
                 if (item.url.isNotBlank() && seen.add(item.url)) items += item
             }
@@ -217,7 +224,7 @@ abstract class Hipmh : KeiSource() {
             .build()
         val data = client.get(url).parseAs<SearchResponse>().data
         val items = data.mangaItems.map { it.toSManga() }
-        return MangasPage(items, page < data.total_pages)
+        return MangasPage(items, hasNextPage = page < data.total_pages)
     }
 
     private suspend fun fetchChapters(mid: String): List<SChapter> {
