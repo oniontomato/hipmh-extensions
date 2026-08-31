@@ -121,7 +121,10 @@ abstract class Hipmh : KeiSource() {
         .addPathSegment("v1")
         .addPathSegment(path)
 
-    private class CategoryFilter(name: String, values: Array<Pair<String, String>>) : Filter.Select<String>(
+    private class CategoryFilter(
+        name: String,
+        values: Array<Pair<String, String>>,
+    ) : Filter.Select<String>(
         name,
         values.map { it.first }.toTypedArray(),
         0,
@@ -130,7 +133,10 @@ abstract class Hipmh : KeiSource() {
         fun toUriPart(): String? = valueMap[values[selected].first]
     }
 
-    private class StatusFilter(name: String, values: Array<Pair<String, String>>) : Filter.Select<String>(
+    private class StatusFilter(
+        name: String,
+        values: Array<Pair<String, String>>,
+    ) : Filter.Select<String>(
         name,
         values.map { it.first }.toTypedArray(),
         0,
@@ -139,7 +145,10 @@ abstract class Hipmh : KeiSource() {
         fun toUriPart(): String? = valueMap[values[selected].first]
     }
 
-    private class SortFilter(name: String, values: Array<String>) : Filter.Select<String>(
+    private class SortFilter(
+        name: String,
+        values: Array<String>,
+    ) : Filter.Select<String>(
         name,
         values,
         0,
