@@ -5,13 +5,13 @@ plugins {
 }
 
 keiyoushi {
-    name = "Hipmh2"
-    versionCode = 4
+    name = "hipmh"
+    versionCode = 1
     contentWarning = ContentWarning.MIXED
-    libVersion = "1.6"
+    libVersion = "1.0"
 
     source {
-        name = "Hipmh"
+        name = "嬉皮漫畫"
         lang = "zh"
         baseUrl {
             custom("https://m.hipmh.com")

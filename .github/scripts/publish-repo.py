@@ -107,13 +107,20 @@ if REPO_DIR.joinpath("index.json").exists():
 else:
     remote_proto = index_pb2.Index()
 
+# Keep only the newest revision for each package name; this prevents stale rebuilds from
+# accumulating in the published repo index.
+package_names_to_delete = {f".{module}" for module in to_delete}
 all_extensions = [
     ext
     for ext in remote_proto.extensionList.extensions
-    if not any(ext.packageName.endswith(f".{module}") for module in to_delete)
+    if not any(ext.packageName.endswith(suffix) for suffix in package_names_to_delete)
 ]
-all_extensions.extend(new_extensions)
-all_extensions.sort(key=lambda ext: ext.packageName)
+
+by_package_name = {ext.packageName: ext for ext in all_extensions}
+for ext in new_extensions:
+    by_package_name[ext.packageName] = ext
+
+all_extensions = sorted(by_package_name.values(), key=lambda ext: ext.packageName)
 
 index = index_pb2.Index(
     name="Hipmh Lite",
