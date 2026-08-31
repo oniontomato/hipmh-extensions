@@ -8,7 +8,7 @@ keiyoushi {
     name = "hipmh"
     versionCode = 1
     contentWarning = ContentWarning.MIXED
-    libVersion = "1.0"
+    libVersion = "1.6"
 
     source {
         name = "嬉皮漫畫"
