@@ -37,8 +37,6 @@ abstract class Hipmh : KeiSource() {
         )
     }
 
-    private val browserUserAgent = browserUserAgents.random()
-
     private val apiBaseUrl = "https://hipapi1.s3file.top"
     private val coverBaseUrl = "https://cover.s3imgs.top"
     private val readerBaseUrl = "https://reader.hipmh.top"
@@ -54,10 +52,7 @@ abstract class Hipmh : KeiSource() {
     }
 
     override fun Headers.Builder.configureHeaders(): Headers.Builder = apply {
-        // Keep one stable browser identity across the whole session. Randomizing the User-Agent per
-        // request makes the same source look like a different client every time and can trigger bot
-        // detection on sites that check request consistency.
-        set("User-Agent", browserUserAgent)
+        set("User-Agent", browserUserAgents.random())
         set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
         set("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
         set("Accept-Encoding", "gzip, deflate, br, zstd")
