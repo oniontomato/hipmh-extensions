@@ -49,11 +49,15 @@ class LdAuthor(val name: String = "")
 class LdGenre(val name: String = "")
 
 @Serializable
-class ChaptersResponse(val code: Int, val data: ChaptersData)
+class ChaptersResponse(
+    val code: Int = 0,
+    val message: String = "",
+    val data: ChaptersData = ChaptersData(),
+)
 
 @Serializable
 class ChaptersData(
-    val items: List<ChapterItem>,
+    val items: List<ChapterItem> = emptyList(),
     val page: Int = 1,
     val total: Int = 0,
     val total_pages: Int = 1,
@@ -69,7 +73,11 @@ class ChapterItem(
 )
 
 @Serializable
-class ChapterImagesResponse(val code: Int, val data: ChapterImagesData)
+class ChapterImagesResponse(
+    val code: Int = 0,
+    val message: String = "",
+    val data: ChapterImagesData = ChapterImagesData(),
+)
 
 @Serializable
 class ChapterImagesData(val images: String = "")

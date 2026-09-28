@@ -83,7 +83,9 @@ abstract class Hipmh : KeiSource() {
                     sort?.let { addQueryParameter("sort", it) }
                 }
                 .build()
-            val data = client.get(url).parseAs<SearchResponse>().data
+            val response = client.get(url).parseAs<SearchResponse>()
+            requireApiSuccess(response.code, response.message)
+            val data = response.data
             val items = data.mangaItems.map { it.toSManga() }
             return MangasPage(items, hasNextPage = page < data.total_pages)
         }
@@ -101,13 +103,15 @@ abstract class Hipmh : KeiSource() {
             .addQueryParameter("page", page.toString())
             .addQueryParameter("page_size", "24")
             .build()
-        val data = client.get(url).parseAs<SearchResponse>().data
+        val response = client.get(url).parseAs<SearchResponse>()
+        requireApiSuccess(response.code, response.message)
+        val data = response.data
         val items = data.mangaItems.map { it.toSManga() }
         return MangasPage(items, hasNextPage = page < data.total_pages)
     }
 
     override suspend fun getMangaByUrl(url: HttpUrl): SManga? {
-        if (url.pathSegments.firstOrNull() != "works") return null
+        if (url.host != baseUrl.toHttpUrlOrNull()?.host || url.pathSegments.firstOrNull() != "works") return null
         val manga = mangaFromDetailsPage(client.get(url.toString()).asJsoup())
         manga.url = "/${url.pathSegments.joinToString("/")}"
         return manga
@@ -140,14 +144,16 @@ abstract class Hipmh : KeiSource() {
         require(apiHid.isNotBlank()) { "api hid not found" }
         val imgBase = content.attr("data-chapter-img-base-line1")
             .ifBlank { content.attr("data-chapter-img-base") }
+        require(imgBase.isNotBlank()) { "chapter image base not found" }
         val url = apiBaseUrl.toHttpUrlOrNull()!!.newBuilder()
             .addPathSegment("v2")
             .addPathSegment("chapter")
             .addQueryParameter("hid", apiHid)
             .build()
-        val images = HipmhImagesDecoder.decode(
-            client.get(url).parseAs<ChapterImagesResponse>().data.images,
-        )
+        val response = client.get(url).parseAs<ChapterImagesResponse>()
+        requireApiSuccess(response.code, response.message)
+        val images = HipmhImagesDecoder.decode(response.data.images)
+        require(images.isNotEmpty()) { "chapter image list is empty" }
         return images.mapIndexed { index, path -> Page(index, imageUrl = imgBase + path) }
     }
 
@@ -197,7 +203,9 @@ abstract class Hipmh : KeiSource() {
     }
 
     private suspend fun parseMangaListApiPage(url: HttpUrl): MangasPage {
-        val data = client.get(url).parseAs<SearchResponse>().data
+        val response = client.get(url).parseAs<SearchResponse>()
+        requireApiSuccess(response.code, response.message)
+        val data = response.data
         val items = data.mangaItems.map { it.toSManga() }
         return MangasPage(items, hasNextPage = data.page < data.total_pages)
     }
@@ -217,7 +225,9 @@ abstract class Hipmh : KeiSource() {
                 if (status != null && status != "all") addQueryParameter("status", status)
             }
             .build()
-        val data = client.get(url).parseAs<SearchResponse>().data
+        val response = client.get(url).parseAs<SearchResponse>()
+        requireApiSuccess(response.code, response.message)
+        val data = response.data
         val items = data.mangaItems.map { it.toSManga() }
         return MangasPage(items, hasNextPage = page < data.total_pages)
     }
@@ -235,7 +245,9 @@ abstract class Hipmh : KeiSource() {
                 .addQueryParameter("per_page", "100")
                 .addQueryParameter("order", "desc")
                 .build()
-            val data = client.get(chapterUrl).parseAs<ChaptersResponse>().data
+            val response = client.get(chapterUrl).parseAs<ChaptersResponse>()
+            requireApiSuccess(response.code, response.message)
+            val data = response.data
             if (data.items.isEmpty()) break
             data.items.forEach { item ->
                 chapters += SChapter.create().apply {
@@ -250,6 +262,12 @@ abstract class Hipmh : KeiSource() {
             page++
         }
         return chapters
+    }
+
+    private fun requireApiSuccess(code: Int, message: String) {
+        require(code == 0) {
+            message.ifBlank { "hipmh API request failed (code=$code)" }
+        }
     }
 
     private fun mangaFromDetailsPage(doc: Document, manga: SManga = SManga.create()): SManga {
