@@ -265,7 +265,7 @@ abstract class Hipmh : KeiSource() {
     }
 
     private fun requireApiSuccess(code: Int, message: String) {
-        require(code == 0) {
+        require(code == 0 || code in 200..299) {
             message.ifBlank { "hipmh API request failed (code=$code)" }
         }
     }
